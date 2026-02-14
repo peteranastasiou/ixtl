@@ -13,4 +13,8 @@ Install dotnet-sdk e.g.
 
 ## Run
 
-`dotnet run`
+`dotnet run --project Ixtl`
+
+## Test
+
+`dotnet test`
