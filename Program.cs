@@ -1,2 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿
+Itxl.IInputStream ss = new Itxl.StringInputStream("hello world");
+
+while (ss.Peek() != '\0')
+{
+  Console.WriteLine(ss.Next());
+}
