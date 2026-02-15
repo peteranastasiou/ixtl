@@ -1,5 +1,5 @@
 
-namespace Itxl {
+namespace Ixtl;
 
 public interface IInputStream
 {
@@ -19,6 +19,4 @@ public interface IInputStream
    * Close the stream
    */
   void Close();
-}
-
 }

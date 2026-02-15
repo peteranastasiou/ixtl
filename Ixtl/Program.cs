@@ -1,5 +1,5 @@
 ﻿
-Itxl.IInputStream ss = new Itxl.StringInputStream("hello world");
+Ixtl.IInputStream ss = new Ixtl.StringInputStream("hello world");
 
 while (ss.Peek() != '\0')
 {

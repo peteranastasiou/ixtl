@@ -1,5 +1,5 @@
 
-namespace Itxl {
+namespace Ixtl;
 public class StringInputStream : IInputStream 
 {
   readonly string str;
@@ -32,6 +32,4 @@ public class StringInputStream : IInputStream
   public void Close()
   {
   }
-}
-
 }

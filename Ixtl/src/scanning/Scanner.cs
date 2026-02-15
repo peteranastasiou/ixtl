@@ -1,7 +1,7 @@
 
-namespace Itxl {
+namespace Itxl;
 
-class Scanner
+public class Scanner
 {
 
   
@@ -10,4 +10,3 @@ class Scanner
   }
 }
 
-}
