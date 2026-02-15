@@ -2,7 +2,7 @@
 namespace Ixtl;
 using System.Text;
 
-public class Scanner
+public class Lexer
 {
   readonly IInputStream InputStream;
 
@@ -13,7 +13,7 @@ public class Scanner
   int Col;
   int Line;
   
-  public Scanner(IInputStream inputStream)
+  public Lexer(IInputStream inputStream)
   {
     InputStream = inputStream;
     TokenStr = new StringBuilder();
@@ -91,7 +91,7 @@ public class Scanner
   }
 
   /**
-   * Scanner helpers
+   * Lexer helpers
    */
   char Peek()
   {
