@@ -1,7 +1,16 @@
 ﻿
-Ixtl.IInputStream ss = new Ixtl.StringInputStream("hello world");
+using Ixtl;
 
-while (ss.Peek() != '\0')
+var input = new StringInputStream("+14.0435-63/3");
+
+Scanner scanner = new Scanner(input);
+
+while(true)
 {
-  Console.WriteLine(ss.Next());
+  var tok = scanner.ScanToken();
+  Console.WriteLine($"Token {tok.Type}: {tok.Str}");
+  if (tok.Type == TokenType.END)
+  {
+    return;
+  }
 }

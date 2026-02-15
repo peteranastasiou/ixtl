@@ -1,0 +1,72 @@
+
+# This is a constant
+# Top level allows functions and constants only:
+
+i8 CONSTANT = 4; // what to allow here? literal only to start
+
+# fn keyword makes language not need backtracking
+fn foo(i8 i, flt f) flt {  # Note return type at end
+  if(i == 0) {
+    return f;
+  } else if (i == 1) {
+    return 0.0;
+  } else {
+    panic "unexpected value of i";
+  }
+}
+
+# Types:
+flt  # double
+## signed integers:
+i8
+i16
+i32
+## unsigned integers:
+u8
+u16
+u32
+## other:
+str
+obj  # c-sharp object
+fn   # function handle.
+## arrays:
+<type>[] # where <type> is one of the above
+
+# data structures
+C-like if
+C-like for
+C-like while
+C-like switch
+
+# additional:
+panic - unhandlable exception. essentially exit.
+
+# Not in language:
+# to keep it simple!
+- generics
+- closures, lambdas & anonymous functions
+- exceptions
+
+# interop
+c-sharp objects can be made available as values with callable methods by annotating them and passing them to the VM.
+
+# extensions
+native structs
+
+# notes
+parent language is used for garbage collection
+
+
+# Milestones
+ [ ] i32 support only with math operations
+ [ ] print
+ [ ] functions
+ [ ] strings
+ [ ] booleans & inequalities
+ [ ] other integer types
+ [ ] floats
+ [ ] c-sharp objects
+ [ ] if / for / while
+ [ ] arrays
+ [ ] switch
+ [ ] panic
