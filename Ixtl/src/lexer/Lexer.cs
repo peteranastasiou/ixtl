@@ -3,20 +3,20 @@ namespace Ixtl;
 using System.Text;
 
 public class Lexer {
-  readonly IInputStream InputStream;
+  readonly IInputStream _inputStream;
 
   // Current token
-  StringBuilder TokenStr;
+  readonly StringBuilder _tokenStr;
 
   // Position
-  int Col;
-  int Line;
+  int _col;
+  int _line;
 
   public Lexer(IInputStream inputStream) {
-    InputStream = inputStream;
-    TokenStr = new StringBuilder();
-    Line = 0;
-    Col = 0;
+    _inputStream = inputStream;
+    _tokenStr = new StringBuilder();
+    _line = 0;
+    _col = 0;
   }
 
   public Token ScanToken() {
@@ -24,9 +24,9 @@ public class Lexer {
     SkipWhitespace();
 
     // Reset token buffer
-    TokenStr.Clear();
+    _tokenStr.Clear();
 
-    if (IsAtEnd()) return MakeToken(TokenType.END);
+    if (IsAtEnd()) return MakeToken(TokenType.EOF);
 
     char c = NextChar();
 
@@ -52,6 +52,10 @@ public class Lexer {
       case '=': return MakeToken(MatchNext('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
       case '<': return MakeToken(MatchNext('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
       case '>': return MakeToken(MatchNext('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+
+      // Temporary
+      case 'P': return MakeToken(TokenType.PRINT);
+      case 'R': return MakeToken(TokenType.RETURN);
     }
 
     Console.WriteLine($"Unexpected char: '{c}'");
@@ -87,43 +91,43 @@ public class Lexer {
    * Lexer helpers
    */
   char Peek() {
-    return InputStream.Peek();
+    return _inputStream.Peek();
   }
 
   bool IsAtEnd() {
-    return InputStream.Peek() == '\0';
+    return _inputStream.Peek() == '\0';
   }
 
   char NextChar() {
-    char c = InputStream.Next();
-    Col++;
-    TokenStr.Append(c);
+    char c = _inputStream.Next();
+    _col++;
+    _tokenStr.Append(c);
     return c;
   }
 
   bool MatchNext(char expected) {
     if (IsAtEnd()) return false;
-    if (InputStream.Peek() == expected) {
-      InputStream.Next();
+    if (_inputStream.Peek() == expected) {
+      _inputStream.Next();
       return true;
     }
     return false;
   }
 
   void IncrementLine() {
-    Line++;
-    Col = 0;
+    _line++;
+    _col = 0;
   }
 
   /**
    * Token Type Identification helpers
    */
-  bool IsAlpha(char c) {
+  static bool IsAlpha(char c) {
     // A-Z | a-z
     return Char.IsAsciiLetter(c);
   }
 
-  bool IsDigit(char c) {
+  static bool IsDigit(char c) {
     // 0-9
     return Char.IsAsciiDigit(c);
   }
@@ -132,7 +136,7 @@ public class Lexer {
    * Token creation helpers
    */
   Token MakeToken(TokenType type) {
-    return new Token(type, Line, Col);
+    return new Token(type, _line, _col);
   }
 
   Token MakeNumberToken() {
@@ -155,10 +159,10 @@ public class Lexer {
       }
     }
 
-    return new Token(type, Line, Col, TokenStr.ToString());
+    return new Token(type, _line, _col, _tokenStr.ToString());
   }
 
   Token MakeErrorToken(string msg) {
-    return new Token(TokenType.ERROR, Line, Col, msg);
+    return new Token(TokenType.ERROR, _line, _col, msg);
   }
 }

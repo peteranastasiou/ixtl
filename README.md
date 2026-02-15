@@ -1,6 +1,8 @@
 # ixtl
 c-sharp scripting language with interop
 
+# How to use
+
 ## Setup
 
 Install dotnet-sdk e.g.
@@ -18,3 +20,11 @@ Install dotnet-sdk e.g.
 ## Test
 
 `dotnet test`
+
+# General Flow
+
+lexerIInputStream
+ -> lexer/Lexer
+  -> compiler/Compiler
+   -> values/Function
+    -> vm/Vm

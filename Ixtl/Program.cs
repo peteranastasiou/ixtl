@@ -1,14 +1,16 @@
 ﻿
 using Ixtl;
 
-var input = new StringInputStream("+14.0435-63/3");
+var input = new StringInputStream("1.0435 63 + P R");
+var output = new ConsoleOutput();
 
-Lexer lexer = new Lexer(input);
-
-while (true) {
-  var tok = lexer.ScanToken();
-  Console.WriteLine($"Token {tok.Type}: {tok.Str}");
-  if (tok.Type == TokenType.END) {
-    return;
+Compiler compiler = new();
+if ( compiler.Compile("<>", input, output, out Chunk chunk) ) {
+  output.WriteDebugLine("Chunk: ");
+  foreach(byte c in chunk.Code) {
+    output.WriteDebugLine($"{c}");
   }
+
+  Vm vm = new();
+  vm.Interpret(chunk, output);
 }

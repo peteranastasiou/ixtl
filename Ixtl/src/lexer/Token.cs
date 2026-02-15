@@ -28,7 +28,7 @@ public enum TokenType {
   // Type keywords:
   STR, I32, FLT,
   // Special tokens:
-  ERROR, END,
+  ERROR, EOF,
 
   // Deprecated, use native funcs:
   PRINT
@@ -49,5 +49,9 @@ public readonly struct Token {
     Line = line;
     Col = col;
     Str = str;
+  }
+
+  public override string ToString() {
+    return $"Token: {Type} {Str}";
   }
 }

@@ -1,26 +1,26 @@
 
 namespace Ixtl;
 public class StringInputStream : IInputStream {
-  readonly string str;
-  int idx;
+  readonly string _str;
+  int _idx;
 
   public StringInputStream(string str) {
-    this.str = str;
-    idx = 0;
+    _str = str;
+    _idx = 0;
   }
 
   public char Peek() {
-    if (idx >= str.Length) {
+    if (_idx >= _str.Length) {
       return '\0';
     }
     else {
-      return this.str[idx];
+      return _str[_idx];
     }
   }
 
   public char Next() {
     char c = Peek();
-    idx++;
+    _idx++;
     return c;
   }
 
