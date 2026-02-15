@@ -2,8 +2,7 @@
 namespace Ixtl;
 using System.Text;
 
-public class Lexer
-{
+public class Lexer {
   readonly IInputStream InputStream;
 
   // Current token
@@ -12,17 +11,15 @@ public class Lexer
   // Position
   int Col;
   int Line;
-  
-  public Lexer(IInputStream inputStream)
-  {
+
+  public Lexer(IInputStream inputStream) {
     InputStream = inputStream;
     TokenStr = new StringBuilder();
     Line = 0;
     Col = 0;
   }
 
-  public Token ScanToken()
-  {
+  public Token ScanToken() {
     // first, gobble up whitespace and comments:
     SkipWhitespace();
 
@@ -30,15 +27,14 @@ public class Lexer
     TokenStr.Clear();
 
     if (IsAtEnd()) return MakeToken(TokenType.END);
-    
+
     char c = NextChar();
 
     // TODO if (IsAlpha(c)) return MakeIdentifierOrKeywordToken();
     if (IsDigit(c)) return MakeNumberToken();
 
     // Symbols
-    switch(c)
-    {
+    switch (c) {
       case '(': return MakeToken(TokenType.LEFT_PAREN);
       case ')': return MakeToken(TokenType.RIGHT_PAREN);
       case '{': return MakeToken(TokenType.LEFT_BRACE);
@@ -62,30 +58,27 @@ public class Lexer
     return MakeErrorToken("Unexpected character.");
   }
 
-  void SkipWhitespace()
-  {
-    while (true)
-    {
-      switch (Peek())
-      {
+  void SkipWhitespace() {
+    while (true) {
+      switch (Peek()) {
         case '\n':
-            IncrementLine();
-            goto case ' '; // Fall-through
+          IncrementLine();
+          goto case ' '; // Fall-through
         case ' ':
         case '\r':
         case '\t':
-            NextChar();
-            break;
+          NextChar();
+          break;
 
         case '#':
-            // comment out the rest of the line:
-            while( Peek()!='\n' && !IsAtEnd() ){
-                NextChar();
-            }
-            break;
+          // comment out the rest of the line:
+          while (Peek() != '\n' && !IsAtEnd()) {
+            NextChar();
+          }
+          break;
 
         default:
-            return;
+          return;
       }
     }
   }
@@ -93,8 +86,7 @@ public class Lexer
   /**
    * Lexer helpers
    */
-  char Peek()
-  {
+  char Peek() {
     return InputStream.Peek();
   }
 
@@ -102,42 +94,36 @@ public class Lexer
     return InputStream.Peek() == '\0';
   }
 
-  char NextChar()
-  {
+  char NextChar() {
     char c = InputStream.Next();
-    Col ++;
+    Col++;
     TokenStr.Append(c);
     return c;
   }
 
-  bool MatchNext(char expected)
-  {
+  bool MatchNext(char expected) {
     if (IsAtEnd()) return false;
-    if (InputStream.Peek() == expected)
-    {
+    if (InputStream.Peek() == expected) {
       InputStream.Next();
       return true;
     }
     return false;
   }
 
-  void IncrementLine()
-  {
-    Line ++;
+  void IncrementLine() {
+    Line++;
     Col = 0;
   }
 
   /**
    * Token Type Identification helpers
    */
-  bool IsAlpha(char c)
-  {
+  bool IsAlpha(char c) {
     // A-Z | a-z
     return Char.IsAsciiLetter(c);
   }
 
-  bool IsDigit(char c)
-  {
+  bool IsDigit(char c) {
     // 0-9
     return Char.IsAsciiDigit(c);
   }
@@ -145,31 +131,26 @@ public class Lexer
   /**
    * Token creation helpers
    */
-  Token MakeToken(TokenType type)
-  {
+  Token MakeToken(TokenType type) {
     return new Token(type, Line, Col);
   }
 
-  Token MakeNumberToken()
-  {
+  Token MakeNumberToken() {
     // Integer part
-    while (IsDigit(Peek()))
-    {
+    while (IsDigit(Peek())) {
       NextChar();
     }
     TokenType type = TokenType.INT_VALUE;
 
     // Fractional part
-    if (Peek() == '.')
-    {
+    if (Peek() == '.') {
       type = TokenType.FLT_VALUE;
       NextChar(); // eat the '.'
 
       // Must have at least one digit after the '.'
       if (!IsDigit(Peek())) return MakeErrorToken("Malformed number");
 
-      while (IsDigit(Peek()))
-      {
+      while (IsDigit(Peek())) {
         NextChar();
       }
     }
@@ -177,8 +158,7 @@ public class Lexer
     return new Token(type, Line, Col, TokenStr.ToString());
   }
 
-  Token MakeErrorToken(string msg)
-  {
+  Token MakeErrorToken(string msg) {
     return new Token(TokenType.ERROR, Line, Col, msg);
   }
 }

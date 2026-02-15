@@ -1,8 +1,7 @@
 
 namespace Ixtl;
 
-public interface IInputStream
-{
+public interface IInputStream {
   /**
    * return the next input character
    * null value (0) indicates end of stream

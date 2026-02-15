@@ -1,8 +1,7 @@
 
 namespace Ixtl;
 
-public enum TokenType
-{
+public enum TokenType {
   // Single-character tokens:
   LEFT_PAREN, RIGHT_PAREN,      // ()
   LEFT_BRACE, RIGHT_BRACE,      // {}
@@ -21,7 +20,7 @@ public enum TokenType
   STR_VALUE, INT_VALUE, FLT_VALUE,
   TRUE, FALSE,
   // Operations:
-  AND, OR, 
+  AND, OR,
   // Structure keywords:
   IF, ELSE,
   FOR, WHILE,
@@ -35,20 +34,17 @@ public enum TokenType
   PRINT
 }
 
-public readonly struct Token
-{
+public readonly struct Token {
   public readonly TokenType Type;
   public readonly int Line;
   public readonly int Col;
   public readonly string? Str;
 
-  public Token()
-  {
+  public Token() {
     Str = null;
   }
 
-  public Token(TokenType type, int line, int col, string? str=null)
-  {
+  public Token(TokenType type, int line, int col, string? str = null) {
     Type = type;
     Line = line;
     Col = col;
