@@ -1,6 +1,12 @@
 namespace Ixtl;
 
 public class ConsoleOutput : IOutput {
+  bool _debug;
+
+  public ConsoleOutput(bool debug) {
+    _debug = debug;
+  }
+
   public void Write(string str) {
     Console.Write(str);
   }
@@ -10,10 +16,14 @@ public class ConsoleOutput : IOutput {
   }
 
   public void WriteDebug(string str) {
-    Console.Write(str);
+    if (_debug) {
+      Console.Write(str);
+    }
   }
 
   public void WriteDebugLine(string str) {
-    Console.WriteLine(str);
+    if (_debug) {
+      Console.WriteLine(str);
+    }
   }
 }

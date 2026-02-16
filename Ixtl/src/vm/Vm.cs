@@ -29,11 +29,11 @@ public class Vm {
   // TODO make this incrementally driven from outside (tickable)
   bool Run() {
     while (true) {
-      _output.Write("Stack: ");
+      _output.WriteDebug("Stack: ");
       foreach (float v in _stack) {
-        _output.Write($"{v} |");
+        _output.WriteDebug($"{v} |");
       }
-      _output.WriteLine("");
+      _output.WriteDebugLine("");
 
       OpCode instruction = (OpCode)ReadByte();
       switch (instruction) {
