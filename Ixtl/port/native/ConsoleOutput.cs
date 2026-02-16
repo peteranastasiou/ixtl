@@ -1,4 +1,6 @@
-namespace Ixtl;
+namespace Port.Native;
+
+using Ixtl;
 
 public class ConsoleOutput : IOutput {
   bool _debug;
