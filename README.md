@@ -7,12 +7,14 @@ Yes:
 * Type Safety
 * Curly Braces and Semi-Colons
 * Systems programming inspired e.g. integer types and binary operators
-* Inter-op with C# object methods
 * Garbage Collection (relying on C# GC)
+* Inter-op with C# object methods (soon)
+* Event subscription (soon)
 
 No:
-* Closures / Anonymous Functions / Lambdas
+* Closures, Anonymous Functions, Lambdas
 * Inheritance
+* Pointers, References
 
 # How to use
 
@@ -38,30 +40,50 @@ Install dotnet-sdk e.g.
 
 TODO
 
+# Notable differences from C
+
+if, for, while are mostly the same. Except for first argument of for, these can only support expressions not variable assignment in the predicate.
+
+Switch statements (TODO) have braces around the cases not the switch, and are available for any datatype:
+```
+switch(x)
+case 0 {
+
+} case 1 {
+
+}
+```
+
 # EBNF
 Note:
 * This applies to tokens, after comments, whitespace and newlines are discarded.
 * Type safety not encoded in below grammar
-* Possibly incorrect
+* Incomplete and possibly incorrect
 ```
 Program ::= { TopLevelStatement }
 TopLevelStatement ::= VarDef | FnDef
-VarDef ::= Type IDENT ‘=’ Expr ‘;’
-FnDef ::= Type IDENT ‘(’ [Params] ‘)’ ’{’ {Statement} ‘}’
-Params ::= Type IDENT { ‘,’ Type IDENT }
-Type ::= ‘bool’ | ‘i8’ | ‘i16’ | ‘i32’ | ‘u8’ | ‘u16’ | ‘u32’ | ‘flt’ | ‘str’ | ‘fn’
-Statement ::= Expr ‘;’ | VarDef | Assignment | ReturnExpr
-Assignment ::= IDENT  ‘=’ Expr ‘;’
-ReturnExpr ::= ‘return’ Expr ‘;’
+VarDef ::= Type IDENT '=' Expr ';'
+FnDef ::= Type IDENT '(' [Params] ')' Block
+Params ::= Type IDENT { ',' Type IDENT }
+Type ::= 'bool' | 'i8' | 'i16' | 'i32' | 'u8' | 'u16' | 'u32' | 'flt' | 'str' | 'fn'
+Block ::= '{' {Statement} '}'
+Statement ::= Expr ';' | VarDef | Assignment | ReturnExpr | For | If | While | Switch
+Assignment ::= IDENT  '=' Expr ';'
+ReturnExpr ::= 'return' Expr ';'
 Expr ::= Value | BinExpr | UnExpr | Group | Call
-Group ::= ‘(’ Expr ‘)’
-Call ::= IDENT ‘(’ [Args] ‘)’
-Args ::= Expr { ‘,’ Expr }
+Group ::= '(' Expr ')'
+Call ::= IDENT '(' [Args] ')'
+Args ::= Expr { ',' Expr }
 UnExpr ::= UnOp Expr
-UnOp ::= ‘!’ | ‘-’ | ‘+’ | Cast
-Cast ::= ‘(’ Type ‘)’
+UnOp ::= '!' | '-' | '+' | Cast
+Cast ::= '(' Type ')'
 BinExpr ::= Expr BinOp Expr
-BinOp ::= ‘+’ | ‘-’ | ‘&&’ | ‘||’ | ‘&’ | ‘|’ | ‘^’ | ‘*’ | ‘**’ | ‘/’ | ‘%’
+BinOp ::= '+' | '-' | '&&' | '||' | '&' | '|' | '^' | '*' | '**' | '/' | '%'
+For ::= 'for' '(' Type IDENT '=' Expr ';' Expr ';' Expr ')' Block
+If ::= 'if' '(' Expr ')' Block { 'else' ( If | Block ) }
+While ::= 'while' '(' Expr ')' Block
+Switch ::= 'switch' '(' Expr ')' {Case}
+Case ::= 'case' Expr Block 
 Value ::= IDENT | INTEGER | FLOAT | STRING
 ```
 
