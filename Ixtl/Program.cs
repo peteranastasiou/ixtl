@@ -5,12 +5,15 @@ using Port.Native;
 // string code = "1.0435 63 + P R";
 string code = @"
   i32 ab = 5.0;
-  i32 cd = 4.0 / 2.0;
+  i32 cd = 3.0;
   i32 ef = 1.0;
   str string = ""hello world"";
-  void main() {
+  void main(i32 c, str msg) {
+    cd = 2.0;
+    print(cd);
     print(ef + ab / cd - 1.1 * 3.0);
   }
+  str end = ""The end"";
 ";
 
 Console.WriteLine(code);

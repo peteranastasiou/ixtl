@@ -24,6 +24,10 @@ public class StringInputStream : IInputStream {
     return c;
   }
 
+  public void Reset() {
+    _idx = 0;
+  }
+
   public string GetLine(int lineNum) {
     // find start of line:
     int i = 0;

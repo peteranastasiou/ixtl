@@ -3,13 +3,9 @@ namespace Ixtl;
 
 using static OperatorPrecedence;
 
-public class Compiler {
-  IInputStream _input = null!;
-  Lexer _lexer = null!;
-  IOutput _output = null!;
+public class Compiler: Parser {
   Chunk _chunk = null!;
-  Token _curr;
-  Token _prev;
+  List<Declaration> _declarations = null!;
 
   public struct Context {
     // Expected value type resulting from an expression
@@ -19,11 +15,19 @@ public class Compiler {
   }
 
   public bool Compile(string name, IInputStream input, IOutput output, out Chunk chunk) {
-    _input = input;
-    _lexer = new(input);
-    _output = output;
     _chunk = new();
     chunk = _chunk;
+
+    // First Pass
+    DeclarationParser dp = new();
+    if (!dp.Parse(name, input, output, out _declarations)) {
+      return false;
+    }
+
+    // Must happen after first pass to reset input stream correctly
+    InitParser(input, output);
+
+    // Second Pass
     try {
       // Get the first token
       Advance();
@@ -107,16 +111,12 @@ public class Compiler {
     else if (Match(TokenType.PRINT)) {
       ParsePrint();
     }
-    // Other types of statements here
-    else if (Check(TokenType.IDENTIFIER)){
-      // Either assignment or function call
-      // TODO assignment
-      ParseCall();
-      Consume(TokenType.SEMICOLON, "Expected ';' after function call.");
-      EmitInstr(OpCode.POP);
-    }
     else {
-      ErrorAt(_curr, "Invalid statement");
+      // Expression-statement
+      ParseExpr();
+      Consume(TokenType.SEMICOLON, "Expected ';' after statement");
+      // Discard result:
+      EmitInstr(OpCode.POP);
     }
   }
 
@@ -135,14 +135,11 @@ public class Compiler {
     Parse(Precedence.ASSIGNMENT, retType);
   }
 
-  void ParseCall() {
-    
-  }
-
   void ParseVarReference(bool canAssign) {
     byte globalIdx = AddLiteral(new Value.Str(_prev.Str!));
 
     if (canAssign && Match(TokenType.EQUAL)) {
+      ParseExpr();
       EmitInstr(OpCode.SET_GLOBAL, globalIdx);
     } else {
       EmitInstr(OpCode.GET_GLOBAL, globalIdx);
@@ -173,6 +170,8 @@ public class Compiler {
     }
 
   }
+
+  // TODO tail return in all following blocks
 
   /**
    * -----------------------------------------------------------
@@ -243,74 +242,6 @@ public class Compiler {
 
     // Now we will have both operands on the stack, emit the binary op now:
     EmitInstr(opCode);
-  }
-
-  /**
-   * -----------------------------------------------------------
-   * Scanning Tokens
-   * -----------------------------------------------------------
-   */
-
-  void Advance() {
-    _prev = _curr;
-    // Skip over errors, reporting them
-    while (true) {
-      _curr = _lexer.ScanToken();
-      _output.WriteDebugLine("lexer", $"Scanned {_curr}");
-      if (_curr.Type == TokenType.ERROR) {
-        ErrorAt(_curr, "");
-      }
-      else {
-        return;
-      }
-    }
-  }
-
-  bool Check(TokenType tokenType) {
-    return _curr.Type == tokenType;
-  }
-
-  bool Match(TokenType tokenType) {
-    bool matched = Check(tokenType);
-    if (matched) {
-      Advance();
-    }
-    return matched;
-  }
-
-  void Consume(TokenType type, string errorMsg) {
-    if (Check(type)) {
-      Advance();
-      return;
-    }
-    ErrorAt(_curr, errorMsg);
-  }
-
-  bool MatchType(out ValueType valueType) {
-    ValueType? t = _curr.Type switch {
-      TokenType.STR => ValueType.STR,
-      TokenType.I32 => ValueType.I32,
-      TokenType.FLT => ValueType.FLT,
-      TokenType.FN => ValueType.FN,
-      TokenType.VOID => ValueType.VOID,
-      _ => null
-    };
-    if (t != null) {
-      Advance();
-      valueType = (ValueType)t;
-      return true;
-    } else {
-      // Forced to give it a value, unused:
-      valueType = ValueType.VOID;
-      return false;
-    }
-  }
-
-  ValueType ConsumeType() {
-    if (MatchType(out ValueType valueType)) {
-      return valueType;
-    }
-    throw ExceptionFromErrorAt(_curr, "Expected a value type.");
   }
 
   /**
@@ -386,35 +317,6 @@ public class Compiler {
 
   void EmitFalse() {
     EmitInstr(OpCode.FALSE);
-  }
-
-  /**
-   * -----------------------------------------------------------
-   * Error Handling
-   * -----------------------------------------------------------
-   */
-
-  void ErrorAt(Token token, string msg) {
-    throw ExceptionFromErrorAt(token, msg);
-  }
-
-  Exception ExceptionFromErrorAt(Token token, string msg) {
-    // Print offending line:
-    _output.WriteLine(_input.GetLine(token.Line));
-    // Indicate position of error:
-    for(int c = 0; c < token.Col - 2; c++) {
-      _output.Write("-");
-    }
-    _output.WriteLine("^");
-
-    if (token.Type == TokenType.ERROR) {
-      msg = token.Str!;
-    }
-
-    _output.WriteLine($"[{token.Line}] Error: {msg}");
-
-    // TODO better error messages
-    throw new InvalidOperationException();
   }
 
   /**

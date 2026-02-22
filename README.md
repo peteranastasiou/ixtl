@@ -114,8 +114,18 @@ lexerIInputStream
  [x] parse globals and main function
  [x] int, flt, strings
  [x] print
- [ ] math operations and casting
+ [x] infix parsing
+ [ ] 2 pass parsing with signature+type checking
+    [x]- first pass
+    [x]- global var assignment
+    [ ]- replace global lookup with index
+    [ ]- expected type for assignment
  [ ] call functions
+    [ ]- compile main properly
+    [ ]- inject `call main`
+    [ ]- expected parameter value types
+ [ ] local vars
+ [ ] casting
  [ ] booleans & inequalities
  [ ] other integer types
  [ ] floats
