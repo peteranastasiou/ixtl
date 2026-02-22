@@ -15,6 +15,8 @@ No:
 * Closures, Anonymous Functions, Lambdas
 * Inheritance
 * Pointers, References
+* Shadowing Variables
+* Type coersion - must cast
 
 # How to use
 
@@ -63,11 +65,12 @@ Note:
 Program ::= { TopLevelStatement }
 TopLevelStatement ::= VarDef | FnDef
 VarDef ::= Type IDENT '=' Expr ';'
-FnDef ::= Type IDENT '(' [Params] ')' Block
+FnDef ::= RetType IDENT '(' [Params] ')' Block
 Params ::= Type IDENT { ',' Type IDENT }
 Type ::= 'bool' | 'i8' | 'i16' | 'i32' | 'u8' | 'u16' | 'u32' | 'flt' | 'str' | 'fn'
+RetType ::= Type | 'void'
 Block ::= '{' {Statement} '}'
-Statement ::= Expr ';' | VarDef | Assignment | ReturnExpr | For | If | While | Switch
+Statement ::= Call ';' | VarDef | Assignment | ReturnExpr | For | If | While | Switch
 Assignment ::= IDENT  '=' Expr ';'
 ReturnExpr ::= 'return' Expr ';'
 Expr ::= Value | BinExpr | UnExpr | Group | Call
@@ -106,3 +109,18 @@ lexerIInputStream
 -> compiler/Program (Note: can be saved to file)
 
 -> vm/Vm
+
+# Milestones
+ [x] parse globals and main function
+ [x] int, flt, strings
+ [x] print
+ [ ] math operations and casting
+ [ ] call functions
+ [ ] booleans & inequalities
+ [ ] other integer types
+ [ ] floats
+ [ ] c-sharp objects
+ [ ] if / for / while
+ [ ] arrays
+ [ ] switch
+ [ ] panic

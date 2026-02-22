@@ -14,6 +14,8 @@ public interface IInputStream {
    */
   char Peek();
 
+  string GetLine(int lineNum);
+
   /**
    * Close the stream
    */

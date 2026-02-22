@@ -3,10 +3,10 @@ namespace Port.Native;
 using Ixtl;
 
 public class ConsoleOutput : IOutput {
-  bool _debug;
+  readonly List<string>? _debugKeys;
 
-  public ConsoleOutput(bool debug) {
-    _debug = debug;
+  public ConsoleOutput(List<string>? debugKeys) {
+    _debugKeys = debugKeys;
   }
 
   public void Write(string str) {
@@ -17,15 +17,9 @@ public class ConsoleOutput : IOutput {
     Console.WriteLine(str);
   }
 
-  public void WriteDebug(string str) {
-    if (_debug) {
-      Console.Write(str);
-    }
-  }
-
-  public void WriteDebugLine(string str) {
-    if (_debug) {
-      Console.WriteLine(str);
+  public void WriteDebugLine(string key, string str) {
+    if (_debugKeys != null && _debugKeys.Contains(key)) {
+      Console.WriteLine($"[{key}] {str}");
     }
   }
 }

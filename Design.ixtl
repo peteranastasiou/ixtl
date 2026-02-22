@@ -57,16 +57,12 @@ native structs
 parent language is used for garbage collection
 
 
-# Milestones
- [ ] i32 support only with math operations
- [ ] print
- [ ] functions
- [ ] strings
- [ ] booleans & inequalities
- [ ] other integer types
- [ ] floats
- [ ] c-sharp objects
- [ ] if / for / while
- [ ] arrays
- [ ] switch
- [ ] panic
+# Dev notes
+
+Literal type inference
+ - grammar only allows for statements where we already know the type
+ - this means we can pass down the expected output type as we parse
+ - boundaries are assignment, call arguments, flow control arguments...
+ - this also means we need to know global and function signatures before we parse
+   - either two passes required (initial just scrapes global signatures) OR need to forward declare.
+   - two passes also means we can make global lookup a compile time thing (by index rather than by name).

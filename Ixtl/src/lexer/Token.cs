@@ -24,9 +24,9 @@ public enum TokenType {
   // Structure keywords:
   IF, ELSE,
   FOR, WHILE,
-  FN, RETURN,
+  RETURN,
   // Type keywords:
-  STR, I32, FLT,
+  STR, I32, FLT, FN, VOID,
   // Special tokens:
   ERROR, EOF,
 

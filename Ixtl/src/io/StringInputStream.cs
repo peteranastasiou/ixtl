@@ -24,6 +24,27 @@ public class StringInputStream : IInputStream {
     return c;
   }
 
+  public string GetLine(int lineNum) {
+    // find start of line:
+    int i = 0;
+    while(lineNum > 0) {
+      if(_str[i] == '\n') {
+        lineNum --;
+      }
+      if(i == _str.Length) {
+        return "<line number out of range>";
+      }
+      i ++;
+    }
+    // find end of line:
+    int end = _str.IndexOf('\n', i);
+    if (end < 0) {
+      return _str[i..];
+    } else {
+      return _str[i..end];
+    }
+  }
+
   public void Close() {
   }
 }

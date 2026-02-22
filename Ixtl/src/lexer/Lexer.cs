@@ -1,4 +1,3 @@
-
 namespace Ixtl;
 using System.Text;
 
@@ -30,7 +29,10 @@ public class Lexer {
 
     char c = NextChar();
 
-    // TODO if (IsAlpha(c)) return MakeIdentifierOrKeywordToken();
+    // Identifiers and Keywords
+    if (IsAlpha(c)) return MakeIdentifierOrKeywordToken();
+
+    // Numbers
     if (IsDigit(c)) return MakeNumberToken();
 
     // Symbols
@@ -52,14 +54,10 @@ public class Lexer {
       case '=': return MakeToken(MatchNext('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
       case '<': return MakeToken(MatchNext('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
       case '>': return MakeToken(MatchNext('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
-
-      // Temporary
-      case 'P': return MakeToken(TokenType.PRINT);
-      case 'R': return MakeToken(TokenType.RETURN);
+      case '"': return MakeStringToken();
     }
 
-    Console.WriteLine($"Unexpected char: '{c}'");
-    return MakeErrorToken("Unexpected character.");
+    return MakeErrorToken($"Unexpected character: '{c}'");
   }
 
   void SkipWhitespace() {
@@ -88,8 +86,11 @@ public class Lexer {
   }
 
   /**
-   * Lexer helpers
+   * -----------------------------------------------------------
+   * Input Stream Helpers
+   * -----------------------------------------------------------
    */
+
   char Peek() {
     return _inputStream.Peek();
   }
@@ -120,11 +121,14 @@ public class Lexer {
   }
 
   /**
+   * -----------------------------------------------------------
    * Token Type Identification helpers
+   * -----------------------------------------------------------
    */
+
   static bool IsAlpha(char c) {
-    // A-Z | a-z
-    return Char.IsAsciiLetter(c);
+    // A-Z | a-z | _
+    return Char.IsAsciiLetter(c) || c == '_';
   }
 
   static bool IsDigit(char c) {
@@ -133,8 +137,11 @@ public class Lexer {
   }
 
   /**
+   * -----------------------------------------------------------
    * Token creation helpers
+   * -----------------------------------------------------------
    */
+
   Token MakeToken(TokenType type) {
     return new Token(type, _line, _col);
   }
@@ -162,7 +169,81 @@ public class Lexer {
     return new Token(type, _line, _col, _tokenStr.ToString());
   }
 
+  Token MakeStringToken() {
+    while(Peek() != '"' && !IsAtEnd()) {
+      if(Peek() == '\n') IncrementLine();
+      if(Peek() == '\\') NextChar();
+      NextChar();
+    }
+    if (IsAtEnd()) {
+      return MakeErrorToken("Unterminated string");
+    }
+    // Consume terminating quote
+    NextChar();
+
+    // Get content of brackets:
+    var content = _tokenStr.ToString()[1..^1];
+    return new Token(TokenType.STR_VALUE, _line, _col, content);
+  }
+
+  Token MakeIdentifierOrKeywordToken() {
+    while (IsAlpha(Peek()) || IsDigit(Peek())) {
+      NextChar();
+    }
+
+    // Detect which keyword or whether it is an identifier
+    TokenType type = GetIdentifierOrKeywordType();
+
+    // Only capture the string if its an identier:
+    string? str = type == TokenType.IDENTIFIER ? _tokenStr.ToString() : null;
+    return new Token(type, _line, _col, str);
+  }
+
   Token MakeErrorToken(string msg) {
     return new Token(TokenType.ERROR, _line, _col, msg);
+  }
+
+  /**
+   * -----------------------------------------------------------
+   * Keyword Trie
+   * -----------------------------------------------------------
+   */
+
+  TokenType GetIdentifierOrKeywordType() {
+    // Use a trie to scan for keywords efficiently:
+    switch (_tokenStr[0]) {
+      case 'i': return CheckKeyword(1, "32", TokenType.I32);
+      case 'f':
+        // Could be false, flt, fn or for:
+        if (_tokenStr.Length > 1) {
+          switch (_tokenStr[1]) {
+            case 'a': return CheckKeyword(2, "lse", TokenType.FALSE);
+            case 'l': return CheckKeyword(2, "t", TokenType.FLT);
+            case 'o': return CheckKeyword(2, "r", TokenType.FOR);
+            case 'n': return TokenType.FN;
+          }
+        }
+        break;
+      case 'p': return CheckKeyword(1, "rint", TokenType.PRINT);
+      case 's': return CheckKeyword(1, "tr", TokenType.STR);
+      case 't': return CheckKeyword(1, "rue", TokenType.TRUE);
+      case 'v': return CheckKeyword(1, "oid", TokenType.VOID);
+    }
+    // Not a keyword
+    return TokenType.IDENTIFIER;
+  }
+
+  TokenType CheckKeyword(int offset, string rest, TokenType type) {
+    // Check length
+    if (_tokenStr.Length != offset + rest.Length) {
+      // Nope, must be identifier
+      return TokenType.IDENTIFIER;
+    }
+    // Check content
+    for (int i = 0; i < rest.Length; i++) {
+      if (_tokenStr[offset + i] != rest[i]) return TokenType.IDENTIFIER;
+    }
+    // Its a match
+    return type;
   }
 }
