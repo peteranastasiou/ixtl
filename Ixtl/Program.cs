@@ -8,7 +8,7 @@ string code = @"
   i32 cd = 3.0;
   i32 ef = 1.0;
   str string = ""hello world"";
-  void main(i32 c, str msg) {
+  void main() {
     cd = 2.0;
     print(cd);
     print(ef + ab / cd - 1.1 * 3.0);
@@ -17,7 +17,7 @@ string code = @"
 ";
 
 // Parse debug options
-List<string> debugKeys = new();
+List<string> debugKeys = [];
 foreach (var arg in args) {
   if(arg.StartsWith("--debug=")) {
     debugKeys.Add(arg[8..]);

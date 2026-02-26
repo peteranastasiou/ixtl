@@ -2,9 +2,10 @@
 namespace Ixtl;
 
 public class DeclarationParser: Parser {
-  List<Declaration> _declarations = null!;
+  Dictionary<string, Declaration> _declarations = null!;
+  short NextId = 0;
 
-  public bool Parse(string name, IInputStream input, IOutput output, out List<Declaration> declarations) {
+  public bool Parse(string name, IInputStream input, IOutput output, out Dictionary<string, Declaration> declarations) {
     InitParser(input, output);
     _declarations = [];
     declarations = _declarations;
@@ -73,11 +74,12 @@ public class DeclarationParser: Parser {
       Advance();
     }
 
-    _declarations.Add(new() {
+    AddDeclaration(new() {
       DeclType = DeclarationType.FUNCTION,
       InputTypes = paramTypes,
       OutputType = vtype,
-      Name = name
+      Name = name,
+      Id = NextId ++
     });
   }
 
@@ -88,10 +90,20 @@ public class DeclarationParser: Parser {
     }
     Consume(TokenType.SEMICOLON, "Expected ';' after variable definition.");
 
-    _declarations.Add(new() {
+    AddDeclaration(new() {
       DeclType = DeclarationType.GLOBAL_VAR,
       OutputType = vtype,
-      Name = name
+      Name = name,
+      Id = NextId ++
     });
+  }
+
+  void AddDeclaration(Declaration d) {
+    if (_declarations.ContainsKey(d.Name)) {
+      throw new InvalidOperationException($"Cannot redefine '{d.Name}'");
+    }
+    _declarations[d.Name] = d;
+
+    _output.WriteDebugLine("declaration", d.ToString());
   }
 }

@@ -5,7 +5,7 @@ using static OperatorPrecedence;
 
 public class Compiler: Parser {
   Chunk _chunk = null!;
-  List<Declaration> _declarations = null!;
+  Dictionary<string, Declaration> _declarations = null!;
 
   public struct Context {
     // Expected value type resulting from an expression
@@ -53,14 +53,15 @@ public class Compiler: Parser {
       // Top level statements can be either global variables or functions
       // Both start with <Type> <Identifier> before they differentiate
       ValueType t = ConsumeType();
-      byte nameIdx = MakeIdentifierLiteral();
+      Consume(TokenType.IDENTIFIER, "Expected a valid name");
+
       if (Match(TokenType.LEFT_PAREN)) {
         // its a function
-        ParseFunction(t, nameIdx);
+        ParseFunction(t);
       }
       else if (Match(TokenType.EQUAL)) {
         // its a global variable definition
-        ParseGlobal(t, nameIdx);
+        ParseGlobal(t);
       }
       else {
         ErrorAt(_curr, "Expected either ( or =");
@@ -68,7 +69,7 @@ public class Compiler: Parser {
     }
   }
 
-  void ParseFunction(ValueType vtype, byte nameIdx) {
+  void ParseFunction(ValueType vtype) {
     // Check for params
     if(!Check(TokenType.RIGHT_PAREN)) {
       do {
@@ -81,16 +82,17 @@ public class Compiler: Parser {
     EmitInstr(OpCode.RETURN);
   }
 
-  void ParseGlobal(ValueType vtype, byte nameIdx) {
+  void ParseGlobal(ValueType vtype) {
     // Initial value:
     ParseExpr(vtype);
-    EmitInstr(OpCode.DEFINE_GLOBAL_VAR, nameIdx, (byte) vtype);
+    // Add the global, note that we do this in the right sequence so we can look up by index later
+    EmitInstr(OpCode.DEFINE_GLOBAL_VAR, (byte) vtype);
     Consume(TokenType.SEMICOLON, "Expected ';' after variable definition.");
   }
 
   void ParseParam() {
-    ValueType vtype = ConsumeType();
-    byte nameIdx = MakeIdentifierLiteral();
+    // ValueType vtype = ConsumeType();
+    // byte nameIdx = ParseGlobalName();
     // TODO parameters
     // TODO check parameter against expected type if fn already used by code
   }
@@ -135,14 +137,23 @@ public class Compiler: Parser {
     Parse(Precedence.ASSIGNMENT, retType);
   }
 
+  short GetIndexOfGlobal(string name) {
+    if (_declarations.TryGetValue(name, out Declaration declaration)) {
+      return declaration.Id;
+    } else {
+      ErrorAt(_prev, $"The name {name} is not defined");
+      return 0;  // unreachable
+    }
+  }
+
   void ParseVarReference(bool canAssign) {
-    byte globalIdx = AddLiteral(new Value.Str(_prev.Str!));
+    short globalIdx = GetIndexOfGlobal(_prev.Str!);
 
     if (canAssign && Match(TokenType.EQUAL)) {
       ParseExpr();
-      EmitInstr(OpCode.SET_GLOBAL, globalIdx);
+      EmitInstr(OpCode.SET_GLOBAL, (byte)globalIdx);
     } else {
-      EmitInstr(OpCode.GET_GLOBAL, globalIdx);
+      EmitInstr(OpCode.GET_GLOBAL, (byte)globalIdx);
     }
   }
 
@@ -249,11 +260,6 @@ public class Compiler: Parser {
    * Constructing Values
    * -----------------------------------------------------------
    */
-
-  byte MakeIdentifierLiteral() {
-    Consume(TokenType.IDENTIFIER, "Expected a valid name");
-    return AddLiteral(new Value.Str(_prev.Str!));
-  }
 
   void MakeIntValue() {
     if (int.TryParse(_prev.Str, out int num)) {
