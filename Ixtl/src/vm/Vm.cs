@@ -74,7 +74,6 @@ public class Vm {
               return false;
             }
             _globals[name] = Peek();
-            _output.WriteLine($"set '{name}' to {_globals[name]}");
             break;
           }
         case OpCode.ADD: {

@@ -16,26 +16,35 @@ string code = @"
   str end = ""The end"";
 ";
 
+// Parse debug options
+List<string> debugKeys = new();
+foreach (var arg in args) {
+  if(arg.StartsWith("--debug=")) {
+    debugKeys.Add(arg[8..]);
+  }
+}
+
 Console.WriteLine(code);
 
 var input = new StringInputStream(code);
-var output = new ConsoleOutput(debugKeys: ["compiler", "vm"]);
+var output = new ConsoleOutput(debugKeys);
 
 Compiler compiler = new();
-if (compiler.Compile("<>", input, output, out Chunk chunk)) {
-  output.WriteDebugLine("chunk", "------ Literals -------");
-  for (int i = 0; i < chunk.Literals.Count; i++) {
-    output.WriteDebugLine("chunk", $"Literal[{i}]: {chunk.Literals[i]}");
-  }
-
-  output.WriteDebugLine("chunk", "------ ByteCode -------");
-  foreach (byte c in chunk.Code) {
-    output.WriteDebugLine("chunk", $" {c}");
-  }
-
-  Vm vm = new();
-  vm.Interpret(chunk, output);
-}
-else {
+bool compiledOk = compiler.Compile("<>", input, output, out Chunk chunk);
+if (!compiledOk) {
   Environment.Exit(1);
 }
+output.WriteDebugLine("chunk", "------ Literals -------");
+for (int i = 0; i < chunk.Literals.Count; i++) {
+  output.WriteDebugLine("chunk", $"Literal[{i}]: {chunk.Literals[i]}");
+}
+
+output.WriteDebugLine("chunk", "------ ByteCode -------");
+foreach (byte c in chunk.Code) {
+  output.WriteDebugLine("chunk", $" {c}");
+}
+
+Vm vm = new();
+bool ranOk = vm.Interpret(chunk, output);
+Environment.Exit(ranOk ? 0 : 2);
+
