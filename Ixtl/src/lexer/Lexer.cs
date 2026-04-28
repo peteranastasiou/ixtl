@@ -36,28 +36,29 @@ public class Lexer {
     if (IsDigit(c)) return MakeNumberToken();
 
     // Symbols
-    switch (c) {
-      case '(': return MakeToken(TokenType.LEFT_PAREN);
-      case ')': return MakeToken(TokenType.RIGHT_PAREN);
-      case '{': return MakeToken(TokenType.LEFT_BRACE);
-      case '}': return MakeToken(TokenType.RIGHT_BRACE);
-      case '[': return MakeToken(TokenType.LEFT_BRACKET);
-      case ']': return MakeToken(TokenType.RIGHT_BRACKET);
-      case ',': return MakeToken(TokenType.COMMA);
-      case '-': return MakeToken(TokenType.MINUS);
-      case '+': return MakeToken(TokenType.PLUS);
-      case ';': return MakeToken(TokenType.SEMICOLON);
-      case '/': return MakeToken(TokenType.SLASH);
-      case '*': return MakeToken(TokenType.STAR);
-      case '.': return MakeToken(TokenType.DOT);
-      case '!': return MakeToken(MatchNext('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
-      case '=': return MakeToken(MatchNext('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
-      case '<': return MakeToken(MatchNext('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
-      case '>': return MakeToken(MatchNext('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
-      case '"': return MakeStringToken();
-    }
-
-    return MakeErrorToken($"Unexpected character: '{c}'");
+    return c switch {
+      '(' => MakeToken(TokenType.LEFT_PAREN),
+      ')' => MakeToken(TokenType.RIGHT_PAREN),
+      '{' => MakeToken(TokenType.LEFT_BRACE),
+      '}' => MakeToken(TokenType.RIGHT_BRACE),
+      '[' => MakeToken(TokenType.LEFT_BRACKET),
+      ']' => MakeToken(TokenType.RIGHT_BRACKET),
+      ',' => MakeToken(TokenType.COMMA),
+      '-' => MakeToken(TokenType.MINUS),
+      '+' => MakeToken(TokenType.PLUS),
+      ';' => MakeToken(TokenType.SEMICOLON),
+      '/' => MakeToken(TokenType.SLASH),
+      '*' => MakeToken(TokenType.STAR),
+      '.' => MakeToken(TokenType.DOT),
+      '!' => MakeToken(MatchNext('=') ? TokenType.BANG_EQUAL : TokenType.BANG),
+      '=' => MakeToken(MatchNext('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL),
+      '<' => MakeToken(MatchNext('=') ? TokenType.LESS_EQUAL : TokenType.LESS),
+      '>' => MakeToken(MatchNext('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER),
+      '&' => MatchNext('&') ? MakeToken(TokenType.AND) : MakeErrorToken("Expected '&&'"),
+      '|' => MatchNext('|') ? MakeToken(TokenType.OR) : MakeErrorToken("Expected '||'"),
+      '"' => MakeStringToken(),
+      _ => MakeErrorToken($"Unexpected character: '{c}'"),
+    };
   }
 
   void SkipWhitespace() {
@@ -212,7 +213,8 @@ public class Lexer {
   TokenType GetIdentifierOrKeywordType() {
     // Use a trie to scan for keywords efficiently:
     switch (_tokenStr[0]) {
-      case 'i': return CheckKeyword(1, "32", TokenType.I32);
+      case 'b': return CheckKeyword(1, "ool", TokenType.BOOL);
+      case 'e': return CheckKeyword(1, "lse", TokenType.ELSE);
       case 'f':
         // Could be false, flt, fn or for:
         if (_tokenStr.Length > 1) {
@@ -224,10 +226,20 @@ public class Lexer {
           }
         }
         break;
+      case 'i':
+        // Could be if or int:
+        if (_tokenStr.Length == 2 && _tokenStr[1] == 'f') {
+          return TokenType.IF;
+        } else if (_tokenStr.Length == 3) {
+          return CheckKeyword(1, "nt", TokenType.INT);
+        }
+        break;
       case 'p': return CheckKeyword(1, "rint", TokenType.PRINT);
       case 's': return CheckKeyword(1, "tr", TokenType.STR);
       case 't': return CheckKeyword(1, "rue", TokenType.TRUE);
+      case 'r': return CheckKeyword(1, "eturn", TokenType.RETURN);
       case 'v': return CheckKeyword(1, "oid", TokenType.VOID);
+      case 'w': return CheckKeyword(1, "hile", TokenType.WHILE);
     }
     // Not a keyword
     return TokenType.IDENTIFIER;

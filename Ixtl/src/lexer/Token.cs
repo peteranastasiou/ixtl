@@ -26,7 +26,7 @@ public enum TokenType {
   FOR, WHILE,
   RETURN,
   // Type keywords:
-  STR, I32, FLT, FN, VOID,
+  BOOL, STR, INT, FLT, FN, VOID,
   // Special tokens:
   ERROR, EOF,
 
