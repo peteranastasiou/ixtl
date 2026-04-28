@@ -118,7 +118,7 @@ lexerIInputStream
  [ ] 2 pass parsing with signature+type checking
     [x]- first pass
     [x]- global var assignment
-    [ ]- replace global lookup with index
+    [x]- replace global lookup with index
     [ ]- expected type for assignment
  [ ] call functions
     [ ]- compile main properly

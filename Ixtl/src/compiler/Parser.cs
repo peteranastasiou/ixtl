@@ -54,7 +54,7 @@ public class Parser {
   protected bool MatchType(out ValueType valueType) {
     ValueType? t = _curr.Type switch {
       TokenType.STR => ValueType.STR,
-      TokenType.I32 => ValueType.I32,
+      TokenType.INT => ValueType.INT,
       TokenType.FLT => ValueType.FLT,
       TokenType.FN => ValueType.FN,
       TokenType.VOID => ValueType.VOID,

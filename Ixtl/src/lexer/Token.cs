@@ -17,7 +17,7 @@ public enum TokenType {
   // Names:
   IDENTIFIER,
   // Values:
-  STR_VALUE, INT_VALUE, FLT_VALUE,
+  STR_VALUE, INT_VALUE, FLT_VALUE, // TODO
   TRUE, FALSE,
   // Operations:
   AND, OR,

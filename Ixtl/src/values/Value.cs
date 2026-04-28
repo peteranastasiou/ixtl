@@ -3,8 +3,7 @@ namespace Ixtl;
 
 public enum ValueType {
   BOOL,
-  I32,
-  U32,
+  INT,
   FLT,
   STR,
   VOID,
@@ -22,13 +21,8 @@ public abstract record Value {
     public override string ToString() => Data.ToString();
   }
 
-  public record I32(int Data) : Value {
-    public override ValueType Type => ValueType.I32;
-    public override string ToString() => Data.ToString();
-  }
-
-  public record U32(uint Data) : Value {
-    public override ValueType Type => ValueType.U32;
+  public record Int(int Data) : Value {
+    public override ValueType Type => ValueType.INT;
     public override string ToString() => Data.ToString();
   }
 
@@ -47,12 +41,30 @@ public abstract record Value {
     public override string ToString() => $"<void>";
   }
 
+  public static Int AsInt(Value v) {
+    return (Int)v;
+  }
+
   public static Str AsStr(Value v) {
     return (Str)v;
   }
 
   public static Flt AsFlt(Value v) {
+    // Conversion here???
     return (Flt)v;
+  }
+
+  public static string ValueTypeToStr(ValueType? v) {
+    return v switch {
+      ValueType.BOOL => "bool",
+      ValueType.INT => "int",
+      ValueType.FLT => "flt",
+      ValueType.STR => "str",
+      ValueType.VOID => "void",
+      ValueType.FN => "function",
+      null => "untyped",
+      _ => "invalid",
+    };
   }
 }
 

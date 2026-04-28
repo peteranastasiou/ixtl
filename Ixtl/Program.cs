@@ -2,19 +2,22 @@
 using Ixtl;
 using Port.Native;
 
-// string code = "1.0435 63 + P R";
 string code = @"
-  i32 ab = 5.0;
-  i32 cd = 3.0;
-  i32 ef = 1.0;
-  str string = ""hello world"";
-  void main() {
-    cd = 2.0;
-    print(cd);
-    print(ef + ab / cd - 1.1 * 3.0);
-  }
-  str end = ""The end"";
+  flt a1 = 0;
+  int aaa = 1.2;
 ";
+// string code = @"
+//   flt ab = 5.0;
+//   flt cd = 3.0;
+//   int ef = 1.0;  # Should fail type check
+//   str string = ""hello world"";
+//   void main() {
+//     cd = 2.0;
+//     print(cd);
+//     print(ef + ab / cd - 1.1 * 3.0);
+//   }
+//   str end = ""The end"";
+// ";
 
 // Parse debug options
 List<string> debugKeys = [];

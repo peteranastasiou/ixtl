@@ -146,7 +146,7 @@ public class Compiler: Parser {
     }
   }
 
-  void ParseVarReference(bool canAssign) {
+  void ParseVarReference(bool canAssign, ValueType? retType) {
     short globalIdx = GetIndexOfGlobal(_prev.Str!);
 
     if (canAssign && Match(TokenType.EQUAL)) {
@@ -158,6 +158,7 @@ public class Compiler: Parser {
   }
 
   void Parse(Precedence prec, ValueType? retType) {
+    WriteDebugLine($"Parsing - expect an {retType}");
     Advance();
 
     bool canAssign = prec <= Precedence.ASSIGNMENT;
@@ -190,6 +191,7 @@ public class Compiler: Parser {
    * -----------------------------------------------------------
    */
   bool PrefixOperation(TokenType type, bool canAssign, ValueType? retType) {
+    WriteDebugLine($"Prefix op {type} - expect an {retType}");
     switch( type ){
         // Control flow
         // case TokenType.LEFT_PAREN:    grouping_(); return true;
@@ -202,15 +204,15 @@ public class Compiler: Parser {
         // case TokenType.MINUS:         unary_(); return true;
         // case TokenType.BANG:          unary_(); return true;
 
-        // Values
-        case TokenType.STR_VALUE:     MakeStrValue();   return true;
-        case TokenType.INT_VALUE:     MakeIntValue();   return true;
-        case TokenType.FLT_VALUE:     MakeFloatValue(); return true;
-        case TokenType.TRUE:          EmitTrue();       return true;
-        case TokenType.FALSE:         EmitFalse();      return true;
+        // Literals
+        case TokenType.STR_VALUE:     MakeStrValue(retType);   return true;
+        case TokenType.INT_VALUE:     MakeIntValue(retType);   return true;
+        case TokenType.FLT_VALUE:     MakeFloatValue(retType); return true;
+        case TokenType.TRUE:          EmitTrue(retType);       return true;
+        case TokenType.FALSE:         EmitFalse(retType);      return true;
 
         // Variables
-        case TokenType.IDENTIFIER:    ParseVarReference(canAssign);return true;
+        case TokenType.IDENTIFIER:    ParseVarReference(canAssign, retType); return true;
 
         // Built-in functions
         case TokenType.PRINT:         ParsePrint(); return true;
@@ -219,6 +221,7 @@ public class Compiler: Parser {
   }
 
   bool InfixOperation(TokenType type, ValueType? retType) {
+    WriteDebugLine($"Infix op {type} - expect an {retType}");
     switch( type ){
         // case Token::LEFT_PAREN:      call_();                           return true;
         // case Token::LEFT_BRACKET:    index_();                          return true;
@@ -261,16 +264,33 @@ public class Compiler: Parser {
    * -----------------------------------------------------------
    */
 
-  void MakeIntValue() {
+  void MakeIntValue(ValueType? retType) {
+    // Type checking (i.e. can an integer literal be implicitly cast to anything): yes, a float.
+    if (retType == ValueType.FLT) {
+      // We actually want a float, so make that instead:
+      MakeFloatValue(retType);
+      return;
+    }
+    if (retType != null && retType != ValueType.INT) {
+      ErrorAt(_prev, $"No implicit cast from an integer value to a {Value.ValueTypeToStr(retType)}");
+    }
+
+    // Parse value as int
     if (int.TryParse(_prev.Str, out int num)) {
-      byte literalIdx = AddLiteral(new Value.I32(num));
+      byte literalIdx = AddLiteral(new Value.Int(num));
       EmitInstr(OpCode.LITERAL, literalIdx);
     } else {
       ErrorAt(_prev, "Invalid floating point value.");
     }
   }
 
-  void MakeFloatValue() {
+  void MakeFloatValue(ValueType? retType) {
+    // Type checking (i.e. can a float literal be implicitly cast to anything): no.
+    if (retType != null && retType != ValueType.FLT ) {
+      ErrorAt(_prev, $"No implicit cast from floating point value to a {Value.ValueTypeToStr(retType)}");
+    }
+
+    // Parse value as float
     if (double.TryParse(_prev.Str, out double num)) {
       byte literalIdx = AddLiteral(new Value.Flt(num));
       EmitInstr(OpCode.LITERAL, literalIdx);
@@ -279,7 +299,7 @@ public class Compiler: Parser {
     }
   }
 
-  void MakeStrValue() {
+  void MakeStrValue(ValueType? retType) {
     byte literalIdx = AddLiteral(new Value.Str(_prev.Str!));
     EmitInstr(OpCode.LITERAL, literalIdx);
   }
@@ -317,11 +337,11 @@ public class Compiler: Parser {
     _chunk.Code.Add(b);
   }
 
-  void EmitTrue() {
+  void EmitTrue(ValueType? retType) {
     EmitInstr(OpCode.TRUE);
   }
 
-  void EmitFalse() {
+  void EmitFalse(ValueType? retType) {
     EmitInstr(OpCode.FALSE);
   }
 
