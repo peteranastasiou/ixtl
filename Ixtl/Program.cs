@@ -4,7 +4,9 @@ using Port.Native;
 
 string code = @"
   flt a1 = 0;
-  int aaa = 1.2;
+  #int aaa = 1.2;
+  flt a2 = 1 / 2;
+  #int b1 = 1 / ""hello"";
 ";
 // string code = @"
 //   flt ab = 5.0;

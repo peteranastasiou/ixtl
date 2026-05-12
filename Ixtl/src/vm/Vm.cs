@@ -25,6 +25,9 @@ public class Vm {
   }
 
   byte ReadByte() {
+    if (_ip >= _chunk.Code.Count) {
+      throw new InvalidOperationException("instruction pointer reached end of bytecode");
+    }
     return _chunk.Code[_ip++];
   }
 

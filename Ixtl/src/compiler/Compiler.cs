@@ -125,7 +125,7 @@ public class Compiler: Parser {
   // Deprecated, inject host func instead
   void ParsePrint() {
     Consume(TokenType.LEFT_PAREN, "Expected '(' after print");
-    // 1 argument
+    // 1 argument. Don't specify return type, accepts any.
     ParseExpr();
     Consume(TokenType.RIGHT_PAREN, "Expected ')' after print argument");
     Consume(TokenType.SEMICOLON, "Expected ';' after statement.");
@@ -150,7 +150,7 @@ public class Compiler: Parser {
     short globalIdx = GetIndexOfGlobal(_prev.Str!);
 
     if (canAssign && Match(TokenType.EQUAL)) {
-      ParseExpr();
+      ParseExpr(retType);
       EmitInstr(OpCode.SET_GLOBAL, (byte)globalIdx);
     } else {
       EmitInstr(OpCode.GET_GLOBAL, (byte)globalIdx);
@@ -229,7 +229,7 @@ public class Compiler: Parser {
         case TokenType.STAR:            BinaryOperation(OpCode.MULTIPLY, retType);         return true;
         case TokenType.SLASH:           BinaryOperation(OpCode.DIVIDE, retType);           return true;
 
-        case TokenType.PLUS:            BinaryOperation(OpCode.ADD, retType);     return true;
+        case TokenType.PLUS:            BinaryOperation(OpCode.ADD, retType);              return true;
         case TokenType.MINUS:           BinaryOperation(OpCode.SUBTRACT, retType);         return true;
 
         // case Token::GREATER:         binary_(OpCode::GREATER);          return true;
@@ -247,6 +247,9 @@ public class Compiler: Parser {
   }
 
   void BinaryOperation(OpCode opCode, ValueType? retType) {
+    // Type checking: We want result to be `retType`
+    // first operand is gone... did it get checked?
+
     // _prev token is the binary operation: check its precedence
     int prec = (int)GetInfixPrecedence(_prev.Type);
 
@@ -272,7 +275,7 @@ public class Compiler: Parser {
       return;
     }
     if (retType != null && retType != ValueType.INT) {
-      ErrorAt(_prev, $"No implicit cast from an integer value to a {Value.ValueTypeToStr(retType)}");
+      ErrorAt(_prev, $"No implicit cast from integer to a {Value.ValueTypeToStr(retType)}");
     }
 
     // Parse value as int
@@ -287,7 +290,7 @@ public class Compiler: Parser {
   void MakeFloatValue(ValueType? retType) {
     // Type checking (i.e. can a float literal be implicitly cast to anything): no.
     if (retType != null && retType != ValueType.FLT ) {
-      ErrorAt(_prev, $"No implicit cast from floating point value to a {Value.ValueTypeToStr(retType)}");
+      ErrorAt(_prev, $"No implicit cast from floating point to a {Value.ValueTypeToStr(retType)}");
     }
 
     // Parse value as float
@@ -300,6 +303,11 @@ public class Compiler: Parser {
   }
 
   void MakeStrValue(ValueType? retType) {
+    // Type checking (i.e. can a string literal be implicitly cast to anything): no.
+    if (retType != null && retType != ValueType.STR ) {
+      ErrorAt(_prev, $"No implicit cast from string to a {Value.ValueTypeToStr(retType)}");
+    }
+
     byte literalIdx = AddLiteral(new Value.Str(_prev.Str!));
     EmitInstr(OpCode.LITERAL, literalIdx);
   }
@@ -338,10 +346,18 @@ public class Compiler: Parser {
   }
 
   void EmitTrue(ValueType? retType) {
+    // Type-checking: Can true be implicitly cast to anything but a bool? no.
+    if (retType != null && retType != ValueType.BOOL) {
+      ErrorAt(_prev, $"No implicit cast from bool to a {Value.ValueTypeToStr(retType)}");
+    }
     EmitInstr(OpCode.TRUE);
   }
 
   void EmitFalse(ValueType? retType) {
+    // Type-checking: Can true be implicitly cast to anything but a bool? no.
+    if (retType != null && retType != ValueType.BOOL) {
+      ErrorAt(_prev, $"No implicit cast from bool to a {Value.ValueTypeToStr(retType)}");
+    }
     EmitInstr(OpCode.FALSE);
   }
 
