@@ -59,15 +59,19 @@ public class Compiler: Parser {
       // Both start with <Type> <Identifier> before they differentiate
       ValueType t = ConsumeType();
       Consume(TokenType.IDENTIFIER, "Expected a valid name");
-      Console.WriteLine($"New top level identifier: {_prev.Str}");
+      string name = _prev.Str ?? "";
+      if (name.Length == 0) {
+        ErrorAt(_curr, "Couldn't parse name of top level identifier");
+      }
+      WriteDebugLine($"Top level identifier: {name}");
 
       if (Match(TokenType.LEFT_PAREN)) {
         // its a function
-        ParseFunction(t);
+        ParseFunction(name, t);
       }
       else if (Match(TokenType.EQUAL)) {
         // its a global variable definition
-        ParseGlobal(t);
+        ParseGlobal(name, t);
       }
       else {
         ErrorAt(_curr, "Expected either ( or =");
@@ -75,9 +79,9 @@ public class Compiler: Parser {
     }
   }
 
-  void ParseFunction(ValueType vtype) {
+  void ParseFunction(string name, ValueType vtype) {
     // Create a new function object to write to
-    // _program.functions.Add(_prev.Str, )
+    _function = _program.NewFunction(name);
 
     // Check for params
     if(!Check(TokenType.RIGHT_PAREN)) {
@@ -91,7 +95,7 @@ public class Compiler: Parser {
     EmitInstr(OpCode.RETURN);
   }
 
-  void ParseGlobal(ValueType vtype) {
+  void ParseGlobal(string name, ValueType vtype) {
     // Initial value:
     ParseExpr(vtype);
     // Add the global, note that we do this in the right sequence so we can look up by index later
