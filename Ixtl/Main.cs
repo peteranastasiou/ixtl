@@ -3,9 +3,16 @@ using Ixtl;
 using Port.Native;
 
 string code = @"
-  flt a1 = 0;
+  flt f1 = 0;
+  flt f2 = 1 / 2;
+  int i2 = 0;
+
+  void main() {
+    i2 = 1.0;
+  }
+
+  # Fail:
   #int aaa = 1.2;
-  flt a2 = 1 / 2;
   #int b1 = 1 / ""hello"";
 ";
 // string code = @"
@@ -35,21 +42,22 @@ var input = new StringInputStream(code);
 var output = new ConsoleOutput(debugKeys);
 
 Compiler compiler = new();
-bool compiledOk = compiler.Compile("<>", input, output, out Chunk chunk);
+Ixtl.Program program = new();
+bool compiledOk = compiler.Compile("<>", input, output, program);
 if (!compiledOk) {
   Environment.Exit(1);
 }
 output.WriteDebugLine("chunk", "------ Literals -------");
-for (int i = 0; i < chunk.Literals.Count; i++) {
-  output.WriteDebugLine("chunk", $"Literal[{i}]: {chunk.Literals[i]}");
+for (int i = 0; i < program.Literals.Count; i++) {
+  output.WriteDebugLine("chunk", $"Literal[{i}]: {program.Literals[i]}");
 }
 
-output.WriteDebugLine("chunk", "------ ByteCode -------");
-foreach (byte c in chunk.Code) {
-  output.WriteDebugLine("chunk", $" {c}");
-}
+// output.WriteDebugLine("chunk", "------ ByteCode -------");
+// foreach (byte c in chunk.Code) {
+//   output.WriteDebugLine("chunk", $" {c}");
+// }
 
 Vm vm = new();
-bool ranOk = vm.Interpret(chunk, output);
+bool ranOk = vm.Interpret(program, output);
 Environment.Exit(ranOk ? 0 : 2);
 

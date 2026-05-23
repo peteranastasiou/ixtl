@@ -4,8 +4,13 @@ namespace Ixtl;
 using static OperatorPrecedence;
 
 public class Compiler: Parser {
-  Chunk _chunk = null!;
   Dictionary<string, Declaration> _declarations = null!;
+
+  // The program we are writing to
+  Program _program = null!;
+
+  // Current function within the program we are writing to
+  Function? _function = null;
 
   public struct Context {
     // Expected value type resulting from an expression
@@ -14,9 +19,10 @@ public class Compiler: Parser {
     public ValueType? expectedType;
   }
 
-  public bool Compile(string name, IInputStream input, IOutput output, out Chunk chunk) {
-    _chunk = new();
-    chunk = _chunk;
+  public bool Compile(string name, IInputStream input, IOutput output, Program program) {
+    // Store reference to program to write to
+    _program = program;
+    _function = null;
 
     // First Pass
     DeclarationParser dp = new();
@@ -34,7 +40,6 @@ public class Compiler: Parser {
 
       // Parse top level declarations
       ParseProgram();
-
       return true;
     }
     catch (InvalidOperationException) {
@@ -54,6 +59,7 @@ public class Compiler: Parser {
       // Both start with <Type> <Identifier> before they differentiate
       ValueType t = ConsumeType();
       Consume(TokenType.IDENTIFIER, "Expected a valid name");
+      Console.WriteLine($"New top level identifier: {_prev.Str}");
 
       if (Match(TokenType.LEFT_PAREN)) {
         // its a function
@@ -70,6 +76,9 @@ public class Compiler: Parser {
   }
 
   void ParseFunction(ValueType vtype) {
+    // Create a new function object to write to
+    // _program.functions.Add(_prev.Str, )
+
     // Check for params
     if(!Check(TokenType.RIGHT_PAREN)) {
       do {
@@ -313,11 +322,11 @@ public class Compiler: Parser {
   }
 
   byte AddLiteral(Value v) {
-    int index = _chunk.Literals.Count;
+    int index = _program.Literals.Count;
     if (index >= 254) {
       ErrorAt(_prev, "Too many literals in this chunk.");
     }
-    _chunk.Literals.Add(v);
+    _program.Literals.Add(v);
     WriteDebugLine($"Literal[{index}]: {v}");
     return (byte) index;
   }
@@ -330,19 +339,19 @@ public class Compiler: Parser {
 
   void EmitInstr(OpCode opCode) {
     WriteDebugLine($"OpCode: {(byte)opCode}  # {opCode}");
-    _chunk.Code.Add((byte)opCode);
+    _function?.WriteByteCode((byte)opCode);
   }
 
   void EmitInstr(OpCode opCode, byte b) {
     EmitInstr(opCode);
     WriteDebugLine($"  opnd: {b}");
-    _chunk.Code.Add(b);
+    _function?.WriteByteCode(b);
   }
 
   void EmitInstr(OpCode opCode, byte a, byte b) {
     EmitInstr(opCode, a);
     WriteDebugLine($"  opnd: {b}");
-    _chunk.Code.Add(b);
+    _function?.WriteByteCode(b);
   }
 
   void EmitTrue(ValueType? retType) {

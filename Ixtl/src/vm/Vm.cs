@@ -12,11 +12,13 @@ public class Vm {
   readonly List<Value> _globals = [];
 
   // Code
+  Program _program = null!;
   Chunk _chunk = null!;
   int _ip; // instruction pointer aka index into _chunk
 
-  public bool Interpret(Chunk chunk, IOutput output) {
-    _chunk = chunk;
+  public bool Interpret(Program program, IOutput output) {
+    _program = program;
+    _chunk = program.Init;
     _ip = 0;
     _output = output;
     _stack.Clear();
@@ -41,7 +43,7 @@ public class Vm {
       WriteDebugLine($":{instr}");
       switch (instr) {
         case OpCode.LITERAL: {
-            var val = _chunk.Literals[ReadByte()];
+            var val = _program.Literals[ReadByte()];
             Push(val);
             break;
           }
@@ -131,7 +133,7 @@ public class Vm {
   }
 
   string GetLiteralStr(int i) {
-    return Value.AsStr(_chunk.Literals[i]).Data;
+    return Value.AsStr(_program.Literals[i]).Data;
   }
 
   void WriteDebugLine(string msg) {

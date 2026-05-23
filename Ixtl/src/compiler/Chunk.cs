@@ -2,9 +2,6 @@
 namespace Ixtl;
 
 public class Chunk {
-  public List<byte> Code = new();
-  public List<ushort> Lines = new();
-  public List<Value> Literals = new();
-
-
+  public List<byte> Code = [];
+  public List<ushort> Lines = [];
 }
