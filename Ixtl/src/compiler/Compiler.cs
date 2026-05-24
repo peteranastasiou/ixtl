@@ -12,13 +12,6 @@ public class Compiler: Parser {
   // Current function within the program we are writing to
   Function? _function = null;
 
-  public struct Context {
-    // Expected value type resulting from an expression
-    // Used for type checking 
-    // null means any value type allowed
-    public ValueType? expectedType;
-  }
-
   public bool Compile(string name, IInputStream input, IOutput output, Program program) {
     // Store reference to program to write to
     _program = program;
@@ -58,11 +51,7 @@ public class Compiler: Parser {
       // Top level statements can be either global variables or functions
       // Both start with <Type> <Identifier> before they differentiate
       ValueType t = ConsumeType();
-      Consume(TokenType.IDENTIFIER, "Expected a valid name");
-      string name = _prev.Str ?? "";
-      if (name.Length == 0) {
-        ErrorAt(_curr, "Couldn't parse name of top level identifier");
-      }
+      string name = ConsumeIdentifier();
       WriteDebugLine($"Top level identifier: {name}");
 
       if (Match(TokenType.LEFT_PAREN)) {
@@ -71,7 +60,7 @@ public class Compiler: Parser {
       }
       else if (Match(TokenType.EQUAL)) {
         // its a global variable definition
-        ParseGlobal(name, t);
+        ParseGlobal(t);
       }
       else {
         ErrorAt(_curr, "Expected either ( or =");
@@ -95,7 +84,7 @@ public class Compiler: Parser {
     EmitInstr(OpCode.RETURN);
   }
 
-  void ParseGlobal(string name, ValueType vtype) {
+  void ParseGlobal(ValueType vtype) {
     // Initial value:
     ParseExpr(vtype);
     // Add the global, note that we do this in the right sequence so we can look up by index later
@@ -105,7 +94,7 @@ public class Compiler: Parser {
 
   void ParseParam() {
     // ValueType vtype = ConsumeType();
-    // byte nameIdx = ParseGlobalName();
+    // byte nameIdx = 
     // TODO parameters
     // TODO check parameter against expected type if fn already used by code
   }
@@ -120,11 +109,16 @@ public class Compiler: Parser {
 
   void ParseStatement() {
     if (MatchType(out ValueType valueType)) {
-      // its a local variable declaration
-      _output.WriteLine("TODO consume local variable");
+      // Local variable
+      ParseLocalVarDefinition();
     }
     else if (Match(TokenType.PRINT)) {
       ParsePrint();
+    }
+    else if (Match(TokenType.LEFT_BRACE)) {
+      _function!.BeginScope();
+      ParseBlock();
+      _function!.EndScope();
     }
     else {
       // Expression-statement
@@ -133,6 +127,20 @@ public class Compiler: Parser {
       // Discard result:
       EmitInstr(OpCode.POP);
     }
+  }
+
+  void ParseLocalVarDefinition() {
+    // Parse signature
+    ValueType t = ConsumeType();
+    string name = ConsumeIdentifier();
+
+    // Parse initial value
+    Consume(TokenType.EQUAL, "Expected initial value");
+    WriteDebugLine($"Local var: {name}");
+    ParseExpr(t);
+
+    // Record it
+    _function!.AddLocal(name);
   }
 
   // Deprecated, inject host func instead
@@ -160,13 +168,30 @@ public class Compiler: Parser {
   }
 
   void ParseVarReference(bool canAssign, ValueType? retType) {
-    short globalIdx = GetIndexOfGlobal(_prev.Str!);
+    OpCode setOp, getOp;
+ 
+    // Determine whether it is a local or global reference:
+    string name = _prev.Str!;
+    int index = _function?.ResolveLocalToStackPosition(name) ?? -1;
+    if (index >= 0) {
+      // Its a local variable
+      getOp = OpCode.GET_LOCAL;
+      setOp = OpCode.SET_LOCAL;
+    } else {
+      // Its a global variable
+      getOp = OpCode.GET_GLOBAL;
+      setOp = OpCode.SET_GLOBAL;
+
+      // Throws if not identified:
+      index = GetIndexOfGlobal(name);
+    }
 
     if (canAssign && Match(TokenType.EQUAL)) {
+      // TODO check if retType should be passed here, I think it should be the var type instead
       ParseExpr(retType);
-      EmitInstr(OpCode.SET_GLOBAL, (byte)globalIdx);
+      EmitInstr(setOp, (byte)index);
     } else {
-      EmitInstr(OpCode.GET_GLOBAL, (byte)globalIdx);
+      EmitInstr(getOp, (byte)index);
     }
   }
 
@@ -209,7 +234,6 @@ public class Compiler: Parser {
         // Control flow
         // case TokenType.LEFT_PAREN:    grouping_(); return true;
         // case TokenType.LEFT_BRACKET:  list_(); return true;
-        // case TokenType.LEFT_BRACE:    expressionBlock_(); return true;
         // case TokenType.IF:            ifExpression_(); return true;
         // case TokenType.FN:            funcAnonymous_(); return true;
 

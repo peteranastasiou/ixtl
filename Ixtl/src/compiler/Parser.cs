@@ -78,6 +78,16 @@ public class Parser {
     throw ExceptionFromErrorAt(_curr, "Expected a value type.");
   }
 
+  protected string ConsumeIdentifier() {
+    Consume(TokenType.IDENTIFIER, "Expected a valid name");
+    string name = _prev.Str ?? "";
+    if (name.Length == 0) {
+      // Should never happen
+      ErrorAt(_curr, "Couldn't parse identifier name");
+    }
+    return name;
+  }
+
   /**
    * -----------------------------------------------------------
    * Error Handling

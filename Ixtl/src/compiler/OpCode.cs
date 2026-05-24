@@ -54,8 +54,18 @@ public enum OpCode : byte {
    */
   SET_GLOBAL,
 
-  // GET_LOCAL,
-  // SET_LOCAL,
+  /**
+   * Copy a value by stack offset to the top of the stack
+   * Operand: offset into variable stack
+   * Pushes: value at stack offset
+   */
+  GET_LOCAL,
+
+  /**
+   * Copy a value from top of the stack to a position offset into stack
+   * Operand: offset into variable stack
+   */
+  SET_LOCAL,
 
   // ------ Operations ------------------
 

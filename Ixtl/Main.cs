@@ -6,6 +6,7 @@ string code = @"
   flt f1 = 0;
   flt f2 = 1 / 2;
   int i2 = 0;
+  int i3 = i2 + i2;
 
   void main() {
     i2 = 1.0;

@@ -72,6 +72,16 @@ public class Vm {
             _globals[globalIdx] = v;
             break;
           }
+        case OpCode.GET_LOCAL: {
+            // Push( stack[current frame index + operand] )
+            throw new InvalidOperationException("Unimplemented get local");
+            break;
+          }
+        case OpCode.SET_LOCAL: {
+            // Set stack[current frame index + operand] = Peek()
+            throw new InvalidOperationException("Unimplemented set local");
+            break;
+          }
         case OpCode.ADD: {
           double b = Value.AsFlt(_stack.Pop()).Data;
           double a = Value.AsFlt(_stack.Pop()).Data;
